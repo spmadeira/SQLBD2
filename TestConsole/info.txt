@@ -1,0 +1,10 @@
+WHERE
+(?:where) (.*?)(?=join|on|orderby|where|;)
+JOIN
+(?:join) (.*?) (?:on) (.*?)(?=join|orderby|where|;)
+ORDER BY
+(?:orderby) (.*?)(?=join|where|orderby|;)
+
+
+ex
+SELECT User.name, User.points, Transaction.id, Transaction.date FROM User WHERE User.points >= 30 JOIN Transaction ON Transaction.userId = User.id ORDERBY User.points;
