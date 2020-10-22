@@ -3,12 +3,109 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:local="clr-namespace:BD2App"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow"
+        Height="600"
+        Width="1024"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        WindowStartupLocation="CenterScreen">
     <Grid>
-        <DataGrid 
-            x:Name="DataGrid">
-        </DataGrid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="150" />
+        </Grid.RowDefinitions>
+        <Grid
+            Grid.Column="0"
+            Grid.Row="0"
+            Background="#FF03A9F4"
+            MouseDown="TitleBar_MouseDown">
+            <Grid.Effect>
+                <DropShadowEffect ShadowDepth="2" />
+            </Grid.Effect>
+            <Label
+                VerticalAlignment="Center"
+                FontFamily="{materialDesign:MaterialDesignFont}"
+                FontWeight="DemiBold"
+                FontSize="28"
+                Grid.Column="0"
+                Grid.Row="0"
+                Margin="5 0 0 0">
+                App BD2
+            </Label>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="10,0">
+                <Button
+                    x:Name="CloseButton"
+                    Click="CloseButton_Click"
+                    Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
+                    Width="25"
+                    Height="25"
+                    Background="{x:Null}"
+                    BorderBrush="{x:Null}"
+                    Foreground="Black">
+                    <materialDesign:PackIcon
+                        Kind="Close"
+                        Width="25"
+                        Height="25" />
+                </Button>
+            </StackPanel>
+        </Grid>
+        <DataGrid
+            IsReadOnly="True"
+            AutoGenerateColumns="False"
+            Grid.Row="1"
+            x:Name="DataGrid" />
+        <Grid
+            Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="40" />
+            </Grid.RowDefinitions>
+            <TextBox
+                Style="{x:Null}"
+                Margin="5 5 5 5"
+                Background="LightGray"
+                FontFamily="{StaticResource MaterialDesignFont}"
+                x:Name="LogBox"
+                IsReadOnly="True" />
+            <Grid
+                Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    Grid.Column="0"
+                    FontSize="18"
+                    FontFamily="{StaticResource MaterialDesignFont}"
+                    VerticalContentAlignment="Center"
+                    Style="{x:Null}"
+                    x:Name="QueryInput"
+                    Margin="5 1 5 1"
+                    Text="" />
+                <Button
+                    Grid.Column="1"
+                    Click="QueryClick"
+                    Width="40"
+                    Height="40"
+                    BorderBrush="{x:Null}"
+                    Background="{x:Null}"
+                    Style="{x:Null}">
+                    <Border
+                        BorderBrush="Black">
+                        <fa:ImageAwesome
+                            Icon="ArrowRight" />
+                    </Border>
+                </Button>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

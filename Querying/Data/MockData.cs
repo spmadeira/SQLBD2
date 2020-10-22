@@ -37,7 +37,13 @@ namespace Querying.Data
             while (!sr.EndOfStream)
             {
                 var line = sr.ReadLine();
-                database.Insert(tableName, line.Split(",").Select(e => e.Trim()).ToArray());
+                database.Insert(tableName, line.Split(",").Select<string, object>(e =>
+                {
+                    var trimmed = e.Trim();
+                    var isNumber = int.TryParse(trimmed, out var numb);
+                    if (isNumber) return numb;
+                    else return trimmed;
+                }).ToArray());
             }
         }
         

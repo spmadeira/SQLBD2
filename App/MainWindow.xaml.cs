@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,44 +23,74 @@ namespace BD2App
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static Database Database;
+        
         public MainWindow()
         {
             InitializeComponent();
-            var db = new Database();
-            MockData.Seed(db);
-            var result = Utils.BuildOperation("select * from usuario;", db).RunOperation();
-            // foreach (var key in result.EntryCollection.Keys)
-            // {
-            //     DataGrid.Columns.Add(new DataGridTextColumn
-            //     {
-            //         Binding = new Binding(key.ToString().ToLower())
-            //     });
-            // }
-            
-            
-
-            var parsedResults = new List<Dictionary<string, string>>();
-            foreach (var entry in result.EntryCollection.Entries)
+            Database = new Database();
+            MockData.Seed(Database);
+            KeyDown += (sender, args) =>
             {
-                var subdict = new Dictionary<string,string>();
+                if (args.Key == Key.Enter)
+                {
+                    QueryClick(sender, null);
+                }
+            };
+        }
+
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void QueryClick(object sender, RoutedEventArgs e)
+        {
+            var text = QueryInput.Text;
+            QueryInput.Text = "";
+            LogBox.Text += $"\n{text}";
+            try
+            {
+                var sw = Stopwatch.StartNew();
+                var op = Utils.BuildOperation(text + ";", Database);
+                
+                var result = op.RunOperation();
+                sw.Stop();
+                LogBox.Text += $" -- Duration: {sw.ElapsedMilliseconds}ms";
+                
+                var parsedResults = new List<Dictionary<string, string>>();
+                foreach (var entry in result.EntryCollection.Entries)
+                {
+                    var subdict = new Dictionary<string,string>();
+                    foreach (var key in result.EntryCollection.Keys)
+                    {
+                        subdict.Add(key.ToString(),entry.Fields[key].ToString());
+                    }
+                    parsedResults.Add(subdict);
+                }
+            
+                DataGrid.Columns.Clear();
                 foreach (var key in result.EntryCollection.Keys)
                 {
-                    subdict.Add(key.ToString(),entry.Fields[key].ToString());
+                    DataGrid.Columns.Add(new DataGridTextColumn
+                    {
+                        Header = key.ToString(),
+                        Binding = new Binding($"[{key.ToString()}]")
+                    });
                 }
-                parsedResults.Add(subdict);
+                
+                DataGrid.ItemsSource = parsedResults;
             }
-            
-            DataGrid.AutoGenerateColumns = false;
-            foreach (var key in result.EntryCollection.Keys)
+            catch (IndexOutOfRangeException ex)
             {
-                DataGrid.Columns.Add(new DataGridTextColumn
-                {
-                    Header = key.ToString(),
-                    Binding = new Binding($"[{key.ToString()}]")
-                });
+                LogBox.Text += $"\nQuery error -- {ex.Message}";
+                
             }
-
-            DataGrid.ItemsSource = parsedResults;
         }
     }
 }
