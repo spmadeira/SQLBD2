@@ -378,7 +378,7 @@ public class Utils
                     {
                         var isInt = int.TryParse(possible, out var val);
                         if (isInt) return val;
-                        else return k2;
+                        else return possible;
                     });
 
                     if (v1.Equals(v2))
@@ -409,7 +409,7 @@ public class Utils
                     {
                         var isInt = int.TryParse(possible, out var val);
                         if (isInt) return val;
-                        else return k2;
+                        else return possible;
                     });
 
                     if (v1.Equals(v2))
