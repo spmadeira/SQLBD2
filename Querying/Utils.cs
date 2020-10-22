@@ -90,142 +90,116 @@ public class Utils
         return lastOperation;
     }
 
-    public static Func<Entry, bool> BuildConditionTree(string conditionString)
+    public static Func<QueryContext, Entry, bool> BuildConditionTree(string conditionString)
     {
-        if (conditionString.Contains(" AND "))
+        if (conditionString.Contains("AND"))
         {
-            var halves = conditionString.Split("AND");
+            var halves = conditionString.Split("AND", 2);
             var c1 = BuildConditionTree(halves[0].Trim());
             var c2 = BuildConditionTree(halves[1].Trim());
-            return (e) => c1(e) && c2(e);
+            return (q,e) => c1(q,e) && c2(q,e);
         }
         
-        if (conditionString.Contains(" and "))
+        if (conditionString.Contains("and"))
         {
-            var halves = conditionString.Split(" and ");
+            var halves = conditionString.Split("and", 2);
             var c1 = BuildConditionTree(halves[0].Trim());
             var c2 = BuildConditionTree(halves[1].Trim());
-            return (e) => c1(e) && c2(e);
+            return (q,e) => c1(q,e) && c2(q,e);
         }
 
-        if (conditionString.Contains(" or "))
+        if (conditionString.Contains("OR"))
         {
-            var halves = conditionString.Split(" or ");
+            var halves = conditionString.Split("OR",2);
             var c1 = BuildConditionTree(halves[0].Trim());
             var c2 = BuildConditionTree(halves[1].Trim());
-            return (e) => c1(e) || c2(e);
+            return (q,e) => c1(q,e) || c2(q,e);
+        }
+        
+        if (conditionString.Contains("or"))
+        {
+            var halves = conditionString.Split("or",2);
+            var c1 = BuildConditionTree(halves[0].Trim());
+            var c2 = BuildConditionTree(halves[1].Trim());
+            return (q,e) => c1(q,e) || c2(q,e);
         }
 
         if (conditionString.Contains(">="))
         {
-            var halves = conditionString.Split(">=");
+            var halves = conditionString.Split(">=",2);
             var k1 = halves[0].Trim();
             var k2 = halves[1].Trim();
-            return (e) =>
+            return (q, e) =>
             {
-                var v1 = e.Fields.ContainsKey(k1)
-                    ? (int) e.Fields[k1]
-                    : int.Parse(k1);
-
-                var v2 = e.Fields.ContainsKey(k2)
-                    ? (int) e.Fields[k2]
-                    : int.Parse(k2);
-
+                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
+                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
                 return v1 >= v2;
             };
         }
         
         if (conditionString.Contains("<="))
         {
-            var halves = conditionString.Split("<=");
+            var halves = conditionString.Split("<=", 2);
             var k1 = halves[0].Trim();
             var k2 = halves[1].Trim();
-            return (e) =>
+            return (q,e) =>
             {
-                var v1 = e.Fields.ContainsKey(k1)
-                    ? (int) e.Fields[k1]
-                    : int.Parse(k1);
-
-                var v2 = e.Fields.ContainsKey(k2)
-                    ? (int) e.Fields[k2]
-                    : int.Parse(k2);
-
+                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
+                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
                 return v1 <= v2;
             };
         }
         
         if (conditionString.Contains("<>"))
         {
-            var halves = conditionString.Split("<>");
+            var halves = conditionString.Split("<>",2);
             var k1 = halves[0].Trim();
             var k2 = halves[1].Trim();
-            return (e) =>
+            return (q,e) =>
             {
-                var v1 = e.Fields.ContainsKey(k1)
-                    ? e.Fields[k1]
-                    : k1;
-
-                var v2 = e.Fields.ContainsKey(k2)
-                    ? e.Fields[k2]
-                    : k2;
-
+                //Ver como comparar fora int
+                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
+                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
                 return !v1.Equals(v2);
             };
         }
         
         if (conditionString.Contains("="))
         {
-            var halves = conditionString.Split("=");
+            var halves = conditionString.Split("=",2);
             var k1 = halves[0].Trim();
             var k2 = halves[1].Trim();
-            return (e) =>
+            return (q,e) =>
             {
-                var v1 = e.Fields.ContainsKey(k1)
-                    ? e.Fields[k1]
-                    : k1;
-
-                var v2 = e.Fields.ContainsKey(k2)
-                    ? e.Fields[k2]
-                    : k2;
-
+                //Ver como comparar fora int
+                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
+                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
                 return v1.Equals(v2);
             };
         }
         
         if (conditionString.Contains(">"))
         {
-            var halves = conditionString.Split(">");
+            var halves = conditionString.Split(">",2);
             var k1 = halves[0].Trim();
             var k2 = halves[1].Trim();
-            return (e) =>
+            return (q,e) =>
             {
-                var v1 = e.Fields.ContainsKey(k1)
-                    ? (int) e.Fields[k1]
-                    : int.Parse(k1);
-
-                var v2 = e.Fields.ContainsKey(k2)
-                    ? (int) e.Fields[k2]
-                    : int.Parse(k2);
-
+                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
+                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
                 return v1 > v2;
             };
         }
         
         if (conditionString.Contains("<"))
         {
-            var halves = conditionString.Split("<");
+            var halves = conditionString.Split("<",2);
             var k1 = halves[0].Trim();
             var k2 = halves[1].Trim();
-            return (e) =>
+            return (q,e) =>
             {
-                var v1 = e.Fields.ContainsKey(k1)
-                    ? (int) e.Fields[k1]
-                    : int.Parse(k1);
-
-                var v2 = e.Fields.ContainsKey(k2)
-                    ? (int) e.Fields[k2]
-                    : int.Parse(k2);
-
+                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
+                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
                 return v1 < v2;
             };
         }

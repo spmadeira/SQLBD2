@@ -4,6 +4,6 @@ namespace Querying.Query
 {
     public interface IOperation
     {
-        EntryCollection RunOperation();
+        QueryContext RunOperation();
     }
 }

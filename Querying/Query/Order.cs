@@ -14,17 +14,22 @@ namespace Querying.Query
             CollectionOperation = collectionOperation;
         }
         
-        public EntryCollection RunOperation()
+        public QueryContext RunOperation()
         {
-            var collection = CollectionOperation.RunOperation();
-            var orderedEntries = collection.Entries
-                .OrderBy(e => e.Fields[Key]);
+            var context = CollectionOperation.RunOperation();
+            var orderedEntries = context.EntryCollection
+                .Entries
+                .OrderBy(e => context.GetFieldByName(e, Key));
 
-            return new EntryCollection
+            return new QueryContext
             {
-                CollectionAlias = collection.CollectionAlias,
-                Entries = orderedEntries.ToArray(),
-                Keys = collection.Keys
+                EntryCollection = new EntryCollection
+                {
+                    CollectionAlias = context.EntryCollection.CollectionAlias,
+                    Entries = orderedEntries.ToArray(),
+                    Keys = context.EntryCollection.Keys.ToArray()
+                },
+                IncludedTables = context.IncludedTables.ToArray()
             };
         }
     }

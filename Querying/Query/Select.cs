@@ -18,26 +18,37 @@ namespace Querying.Query
             Parameters = parameters.ToArray();
         }
 
-        public EntryCollection RunOperation()
+        public QueryContext RunOperation()
         {
-            var collection = CollectionOperation.RunOperation();
+            var context = CollectionOperation.RunOperation();
             
             if (Parameters != null && Parameters.Any())
             {
-                return new EntryCollection
+                var identifiers = Parameters
+                    .Select(p => context.GetFieldIdentifierFromName(p));
+                
+                return new QueryContext
                 {
-                    CollectionAlias = collection.CollectionAlias,
-                    Entries = collection.Entries.ToArray(),
-                    Keys = collection.Keys.Intersect(Parameters).ToArray(),
+                    EntryCollection = new EntryCollection
+                    {
+                        CollectionAlias = context.EntryCollection.CollectionAlias,
+                        Entries = context.EntryCollection.Entries.ToArray(),
+                        Keys = context.EntryCollection.Keys.Intersect(identifiers).ToArray()
+                    },
+                    IncludedTables = context.IncludedTables.ToArray()
                 };
             }
             else
             {
-                return new EntryCollection
+                return new QueryContext
                 {
-                    CollectionAlias = collection.CollectionAlias,
-                    Entries = collection.Entries.ToArray(),
-                    Keys = collection.Keys.ToArray()
+                    EntryCollection = new EntryCollection
+                    {
+                        CollectionAlias = context.EntryCollection.CollectionAlias,
+                        Entries = context.EntryCollection.Entries.ToArray(),
+                        Keys = context.EntryCollection.Keys.ToArray()
+                    },
+                    IncludedTables = context.IncludedTables.ToArray()
                 };
             }
         }

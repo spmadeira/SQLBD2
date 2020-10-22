@@ -15,17 +15,21 @@ namespace Querying.Query
             Database = database;
         }
 
-        public EntryCollection RunOperation()
+        public QueryContext RunOperation()
         {
             var col = Database.Entries
                 .First(ec =>
                     ec.CollectionAlias.Equals(TableName, StringComparison.InvariantCultureIgnoreCase));
 
-            return new EntryCollection
+            return new QueryContext
             {
-                CollectionAlias = col.CollectionAlias,
-                Entries = col.Entries.ToArray(),
-                Keys = col.Keys.ToArray()
+                IncludedTables = new []{col.CollectionAlias},
+                EntryCollection = new EntryCollection
+                {
+                    CollectionAlias = col.CollectionAlias,
+                    Entries = col.Entries.ToArray(),
+                    Keys = col.Keys.ToArray()
+                }
             };
         }
     }

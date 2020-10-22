@@ -5,26 +5,31 @@ using Querying.Query;
 
 public class Where : IOperation
 {
-    public Func<Entry,bool> Obeys { get; }
+    public Func<QueryContext, Entry,bool> Obeys { get; }
     public IOperation CollectionOperation { get; }
     
-    public Where(Func<Entry, bool> obeys, IOperation collectionOperation)
+    public Where(Func<QueryContext, Entry, bool> obeys, IOperation collectionOperation)
     {
         Obeys = obeys;
         CollectionOperation = collectionOperation;
     }
 
-    public EntryCollection RunOperation()
+    public QueryContext RunOperation()
     {
-        var collection = CollectionOperation.RunOperation();
-        
-        return new EntryCollection
+        var queryContext = CollectionOperation.RunOperation();
+
+        return new QueryContext
         {
-            CollectionAlias = collection.CollectionAlias,
-            Entries = collection.Entries
-                .Where(e => Obeys(e))
-                .ToArray(),
-            Keys = collection.Keys.ToArray()
+            EntryCollection = new EntryCollection
+            {
+                CollectionAlias = queryContext.EntryCollection.CollectionAlias,
+                Entries = queryContext.EntryCollection
+                    .Entries
+                    .Where(e => Obeys(queryContext, e))
+                    .ToArray(),
+                Keys = queryContext.EntryCollection.Keys.ToArray()
+            },
+            IncludedTables = queryContext.IncludedTables.ToArray()
         };
     }
 }

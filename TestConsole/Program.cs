@@ -15,9 +15,13 @@ public class Program
         while (true)
         {
             Console.ForegroundColor = ConsoleColor.Blue;
-            var input = Console.ReadLine() + ";";
+            var input = Console.ReadLine();
             Console.ForegroundColor = ConsoleColor.Black;
-            var operation = Utils.BuildOperation(input, database);
+            
+            if (input!.Trim().Equals("exit", StringComparison.InvariantCultureIgnoreCase))
+                Environment.Exit(0);
+            
+            var operation = Utils.BuildOperation(input+";", database);
             printOp(operation);
         }
     }
@@ -26,11 +30,11 @@ public class Program
     {
         var results = operation.RunOperation();
         
-        Console.WriteLine($"Table: {results.CollectionAlias}");
-        foreach (var result in results.Entries)
+        Console.WriteLine($"Table: {results.EntryCollection.CollectionAlias}");
+        foreach (var result in results.EntryCollection.Entries)
         {
             Console.WriteLine("Entry: --- ");
-            foreach (var key in results.Keys)
+            foreach (var key in results.EntryCollection.Keys)
             {
                 Console.Write($"{key}: {result.Fields[key]} ");
             }
@@ -42,78 +46,18 @@ public class Program
     private static void seed(Database database)
     {
         database.AddTable("User", new []{"id", "name", "points"});
-        database.Insert("User", new Dictionary<string, object> {{"id", 0}, {"name", "User1"}, {"points", 48}});
-        database.Insert("User", new Dictionary<string, object> {{"id", 1}, {"name", "User2"}, {"points", 800}});
-        database.Insert("User", new Dictionary<string, object> {{"id", 2}, {"name", "User3"}, {"points", 55}});
-        database.Insert("User", new Dictionary<string, object> {{"id", 3}, {"name", "User4"}, {"points", 12}});
-        database.Insert("User", new Dictionary<string, object> {{"id", 4}, {"name", "User5"}, {"points", 0}});
-        database.Insert("User", new Dictionary<string, object> {{"id", 5}, {"name", "User6"}, {"points", 90}});
-        
-        database.AddTable("Transaction", new []{"id", "userId", "date"});
-        database.Insert("Transaction", new Dictionary<string, object>{{"id", 0}, {"userId", 0}, {"date", DateTime.Today}});
-        database.Insert("Transaction", new Dictionary<string, object>{{"id", 1}, {"userId", 0}, {"date", DateTime.Today}});
-        database.Insert("Transaction", new Dictionary<string, object>{{"id", 2}, {"userId", 1}, {"date", DateTime.Today}});
-        database.Insert("Transaction", new Dictionary<string, object>{{"id", 3}, {"userId", 1}, {"date", DateTime.Today}});
-        database.Insert("Transaction", new Dictionary<string, object>{{"id", 4}, {"userId", 2}, {"date", DateTime.Today}});
-    }
-    
-    private static void testqueries()
-    {
-        var database = new Database();
-        seed(database);
-        
-        //SELECT name, points
-        //FROM User
-        //WHERE points >= 30
-        //ORDERBY points
+        database.Insert("User", new object[]{0, "User1", 48});
+        database.Insert("User", new object[]{1, "User2", 800});
+        database.Insert("User", new object[]{2, "User3", 55});
+        database.Insert("User", new object[]{3, "User4", 12});
+        database.Insert("User", new object[]{4, "User5", 0});
+        database.Insert("User", new object[]{5, "User6", 90});
 
-        {
-            var accessOperation = new Access("User", database);
-            var whereOperation = new Where(e => (int)e.Fields["points"] >= 30, accessOperation);
-            var orderOperation = new Order("points", whereOperation);
-            var selectOperation = new Select(new []{"name", "points"}, orderOperation);
-
-            var results = selectOperation.RunOperation();
-
-            Console.WriteLine($"Table: {results.CollectionAlias}");
-            foreach (var result in results.Entries)
-            {
-                Console.WriteLine("Entry: --- ");
-                foreach (var key in results.Keys)
-                {
-                    Console.Write($"{key}: {result.Fields[key]} ");
-                }
-                Console.WriteLine();
-            }
-        }
-        
-        
-        //SELECT *
-        //FROM User
-        //JOIN Transaction
-        //ON Transaction.userId = User.id
-
-        {
-            var userAccessOperation = new Access("User",database);
-            var transactionAccessOperation = new Access("Transaction", database);
-            var joinOperation = new Join(
-                (e) => e.Fields["Transaction.userId"].Equals(e.Fields["User.id"]), 
-                userAccessOperation, 
-                transactionAccessOperation);
-            var selectOperation = new Select(joinOperation);
-            
-            var results = selectOperation.RunOperation();
-
-            Console.WriteLine($"Table: {results.CollectionAlias}");
-            foreach (var result in results.Entries)
-            {
-                Console.WriteLine("Entry: --- ");
-                foreach (var key in results.Keys)
-                {
-                    Console.Write($"{key}: {result.Fields[key]} ");
-                }
-                Console.WriteLine();
-            }
-        }
+        database.AddTable("Transaction", new []{"id", "userId", "date", "pointsTransferred"});
+        database.Insert("Transaction", new object[]{0,0,DateTime.Today - TimeSpan.FromDays(1), 20});
+        database.Insert("Transaction", new object[]{1,0,DateTime.Today, 30});
+        database.Insert("Transaction", new object[]{2,1,DateTime.Today - TimeSpan.FromDays(3), 7});
+        database.Insert("Transaction", new object[]{3,1,DateTime.Today - TimeSpan.FromDays(1), 25});
+        database.Insert("Transaction", new object[]{4,2,DateTime.Today, 60});
     }
 }

@@ -14,24 +14,31 @@ namespace Querying.Data
             {
                 CollectionAlias = name,
                 Entries = new Entry[0],
-                Keys = schema.ToArray()
+                Keys = schema.Select(s => new FieldIdentifier(name,s)).ToArray()
             });
         }
 
-        public void Insert(string tableName, Dictionary<string, object> keys)
+        public void Insert(string tableName, object[] values)
         {
             var table = Entries
                 .FirstOrDefault(ec => ec.CollectionAlias.Equals(tableName, StringComparison.CurrentCultureIgnoreCase));
 
             if (table == default)
-                throw new System.Exception("no table");
+                throw new System.Exception($"No table named {tableName}");
+            
+            if (values.Length != table.Keys.Length)
+                throw new System.Exception($"Invalid keys for {tableName}");
 
-            if (keys.Keys.Except(table.Keys).Any())
-                throw new System.Exception("invalid keys");
+            var fields = new Dictionary<FieldIdentifier, object>();
 
+            for (int i = 0; i < table.Keys.Length; i++)
+            {
+                fields[table.Keys[i]] = values[i];
+            }
+            
             table.Entries = table.Entries.Append(new Entry
             {
-                Fields = new Dictionary<string, object>(keys.ToArray())
+                Fields = fields
             }).ToArray();
         }
     }
