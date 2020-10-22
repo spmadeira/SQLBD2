@@ -32,7 +32,6 @@ namespace Querying.Query
                     EntryCollection = new EntryCollection
                     {
                         CollectionAlias = context.EntryCollection.CollectionAlias,
-                        //Entries = context.EntryCollection.Entries.ToList(),
                         Entries = context.EntryCollection.Entries,
                         Keys = context.EntryCollection.Keys.Intersect(identifiers).ToArray()
                     },
