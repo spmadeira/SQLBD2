@@ -6,6 +6,6 @@ namespace Querying.Data
     {
         public string CollectionAlias { get; set; }
         public FieldIdentifier[] Keys { get; set;  }
-        public Entry[] Entries { get; set; }
+        public List<Entry> Entries { get; set; }
     }
 }

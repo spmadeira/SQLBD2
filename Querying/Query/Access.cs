@@ -27,7 +27,7 @@ namespace Querying.Query
                 EntryCollection = new EntryCollection
                 {
                     CollectionAlias = col.CollectionAlias,
-                    Entries = col.Entries.ToArray(),
+                    Entries = col.Entries.ToList(),
                     Keys = col.Keys.ToArray()
                 }
             };

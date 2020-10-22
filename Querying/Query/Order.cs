@@ -26,7 +26,7 @@ namespace Querying.Query
                 EntryCollection = new EntryCollection
                 {
                     CollectionAlias = context.EntryCollection.CollectionAlias,
-                    Entries = orderedEntries.ToArray(),
+                    Entries = orderedEntries.ToList(),
                     Keys = context.EntryCollection.Keys.ToArray()
                 },
                 IncludedTables = context.IncludedTables.ToArray()

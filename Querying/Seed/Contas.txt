@@ -1,0 +1,10 @@
+﻿1, Credicard, 1, 1, 234
+2, Visa, 1, 2, 5124
+3, Banco do Nordeste, 2, 3, 2134
+4, Volkscard, 1, 4, 232
+5, Hipercard, 1, 5, 2345
+6, Bradesco, 2, 6, 234
+7, ChicoCard, 1, 2, 5476
+8, Bitcoin, 2, 4, 554
+9, Palmas, 1, 2, 353
+10, Itaú, 2, 1, 678

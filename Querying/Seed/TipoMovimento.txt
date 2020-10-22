@@ -1,0 +1,2 @@
+﻿1, Débito
+2, Crédito

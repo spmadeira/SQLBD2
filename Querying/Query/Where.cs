@@ -26,7 +26,7 @@ public class Where : IOperation
                 Entries = queryContext.EntryCollection
                     .Entries
                     .Where(e => Obeys(queryContext, e))
-                    .ToArray(),
+                    .ToList(),
                 Keys = queryContext.EntryCollection.Keys.ToArray()
             },
             IncludedTables = queryContext.IncludedTables.ToArray()

@@ -1,0 +1,19 @@
+﻿1,Salário
+2,Aluguel
+3,Academia
+4,Acessórios
+5,Almoço
+6,Animal de Estimação
+7,Açougue
+8,Bar/Balada
+9,Café/lanches
+10,Celular
+11,Cinema
+12,Combustível
+13,Ônibus
+14,Condomínio
+15,Cursos
+16,Dentista
+17,Eletrônicos
+18,Faculdade
+19,Futebol

@@ -32,7 +32,8 @@ namespace Querying.Query
                     EntryCollection = new EntryCollection
                     {
                         CollectionAlias = context.EntryCollection.CollectionAlias,
-                        Entries = context.EntryCollection.Entries.ToArray(),
+                        //Entries = context.EntryCollection.Entries.ToList(),
+                        Entries = context.EntryCollection.Entries,
                         Keys = context.EntryCollection.Keys.Intersect(identifiers).ToArray()
                     },
                     IncludedTables = context.IncludedTables.ToArray()
@@ -45,7 +46,8 @@ namespace Querying.Query
                     EntryCollection = new EntryCollection
                     {
                         CollectionAlias = context.EntryCollection.CollectionAlias,
-                        Entries = context.EntryCollection.Entries.ToArray(),
+                        //Entries = context.EntryCollection.Entries.ToList(),
+                        Entries = context.EntryCollection.Entries,
                         Keys = context.EntryCollection.Keys.ToArray()
                     },
                     IncludedTables = context.IncludedTables.ToArray()

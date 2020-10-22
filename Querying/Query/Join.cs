@@ -50,7 +50,7 @@ public class Join : IOperation
             }
         }
 
-        mergedContext.EntryCollection.Entries = joinedEntries.ToArray();
+        mergedContext.EntryCollection.Entries = joinedEntries.ToList();
 
         return mergedContext;
     }

@@ -4,4 +4,19 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Update="SeedResources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>SeedResources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="SeedResources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>SeedResources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>
