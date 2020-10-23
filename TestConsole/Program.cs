@@ -49,8 +49,20 @@ public class Program
 
 
             Console.WriteLine($"Query Duration: {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine();
+            Console.Write($"Operation Order: ");
+
+            void printOps(IOperation op)
+            {
+                if (op.CollectionOperation != null)
+                    printOps(op.CollectionOperation);
+                Console.Write($"{op.GetType().Name} ");
+            }
+            
+            printOps(operation);
+            Console.WriteLine();
         }
-        catch (Exception e)
+        catch (EntryPointNotFoundException e)
         {
             Console.WriteLine($"Exception: {e.Message}");
         }

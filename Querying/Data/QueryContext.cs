@@ -15,6 +15,23 @@ namespace Querying.Data
             return entry.Fields[identifier];
         }
 
+        public object GetField(Entry entry, FieldIdentifier identifier)
+        {
+            if (IncludedTables.Length < 2)
+            {
+                var key = EntryCollection.Keys.FirstOrDefault(k =>
+                    k.FieldName.Equals(identifier.FieldName, StringComparison.InvariantCultureIgnoreCase));
+                
+                if (key.Equals(default))
+                    throw new System.Exception($"{identifier} not found in context.");
+
+                return entry.Fields[key];
+            }
+            if (!EntryCollection.Keys.Contains(identifier))
+                throw new System.Exception($"{identifier} not found in context.");
+            return entry.Fields[identifier];
+        }
+
         public object GetFieldByName(Entry entry, string name, Func<object> @default)
         {
             try

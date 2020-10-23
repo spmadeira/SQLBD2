@@ -32,5 +32,7 @@ namespace Querying.Query
                 }
             };
         }
+
+        public IOperation CollectionOperation => null;
     }
 }

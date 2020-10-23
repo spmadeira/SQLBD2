@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Linq;
+using Querying.Conditions;
 using Querying.Data;
 using Querying.Query;
 
 public class Where : IOperation
 {
-    public Func<QueryContext, Entry,bool> Obeys { get; }
-    public IOperation CollectionOperation { get; }
+    public ICondition Condition { get; }
+    public IOperation CollectionOperation { get; set; }
     
-    public Where(Func<QueryContext, Entry, bool> obeys, IOperation collectionOperation)
+    public Where(ICondition condition, IOperation collectionOperation)
     {
-        Obeys = obeys;
+        Condition = condition;
         CollectionOperation = collectionOperation;
     }
 
@@ -25,7 +26,7 @@ public class Where : IOperation
                 CollectionAlias = queryContext.EntryCollection.CollectionAlias,
                 Entries = queryContext.EntryCollection
                     .Entries
-                    .Where(e => Obeys(queryContext, e))
+                    .Where(e => Condition.IsTrue(queryContext, e))
                     .ToList(),
                 Keys = queryContext.EntryCollection.Keys.ToArray()
             },

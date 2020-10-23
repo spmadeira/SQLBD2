@@ -13,6 +13,21 @@ namespace Querying.Data
             FieldName = fieldName;
         }
 
+        public FieldIdentifier(string identifier)
+        {
+            var separated = identifier.Split('.', 2);
+            if (separated.Length > 1)
+            {
+                FieldSourceName = separated[0];
+                FieldName = separated[1];
+            }
+            else
+            {
+                FieldSourceName = "";
+                FieldName = identifier;
+            }
+        }
+
         public override bool Equals(object? obj)
         {
             if (obj is FieldIdentifier identifier)
@@ -35,7 +50,7 @@ namespace Querying.Data
 
         public override string ToString()
         {
-            return $"{FieldSourceName}.{FieldName}";
+            return $"{FieldSourceName}{(FieldSourceName != null ? "." : "")}{FieldName}";
         }
     }
 }
