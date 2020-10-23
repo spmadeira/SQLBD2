@@ -98,6 +98,17 @@ public class Utils
     {
         IOperation lastOperation = mainAccess;
         
+        var whereQueue = new Queue<Where>();
+        
+        var whereMatch = WhereRegex.Match(operationQuery);
+        if (whereMatch.Success)
+        {
+            var where = new Where(
+                BuildConditionTree(whereMatch.Groups[1].Value.Trim()),
+                lastOperation
+            );
+        }
+        
         var joinMatch = JoinRegex.Match(operationQuery);
         if (joinMatch.Success) //ver pra substituir por while .Sucess e botar um .NextMatch() no final
         {
@@ -109,16 +120,7 @@ public class Utils
                 new Access(joinMatch.Groups[1].Value.Trim(), database)
                 );
         }
-
-        var whereMatch = WhereRegex.Match(operationQuery);
-        if (whereMatch.Success)
-        {
-            lastOperation = new Where(
-                BuildConditionTree(whereMatch.Groups[1].Value.Trim()),
-                lastOperation
-                );
-        }
-
+        
         var orderByMatch = OrderByRegex.Match(operationQuery);
         if (orderByMatch.Success)
         {
@@ -130,120 +132,6 @@ public class Utils
 
     public static Func<QueryContext, Entry, bool> BuildConditionTree(string conditionString)
     {
-        {
-            // if (conditionString.Contains("AND"))
-            // {
-            //     var halves = conditionString.Split("AND", 2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) && c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains("and"))
-            // {
-            //     var halves = conditionString.Split("and", 2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) && c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains("OR"))
-            // {
-            //     var halves = conditionString.Split("OR",2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) || c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains("or"))
-            // {
-            //     var halves = conditionString.Split("or",2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) || c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains(">="))
-            // {
-            //     var halves = conditionString.Split(">=",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q, e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 >= v2;
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("<="))
-            // {
-            //     var halves = conditionString.Split("<=", 2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 <= v2;
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("<>"))
-            // {
-            //     var halves = conditionString.Split("<>",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         //Ver como comparar fora int
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return !v1.Equals(v2);
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("="))
-            // {
-            //     var halves = conditionString.Split("=",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         //Ver como comparar fora int
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1.Equals(v2);
-            //     };
-            // }
-            //
-            // if (conditionString.Contains(">"))
-            // {
-            //     var halves = conditionString.Split(">",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 > v2;
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("<"))
-            // {
-            //     var halves = conditionString.Split("<",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 < v2;
-            //     };
-            // }
-        }
-
         var andMatch = AndRegex.Match(conditionString);
         if (andMatch.Success)
         {
