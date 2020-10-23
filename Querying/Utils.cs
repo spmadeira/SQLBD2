@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Querying.Conditions;
 using Querying.Data;
 using Querying.Query;
 
@@ -12,7 +13,7 @@ public class Utils
             (RegexOptions.IgnoreCase));
     
     public static Regex WhereRegex =
-        new Regex(@"(?:where) (.*?)(?=join|on|orderby|where|;)",
+        new Regex(@"(?:where) (.*?)(?= join| on| orderby| where|;)",
             (RegexOptions.IgnoreCase));
     
     public static Regex JoinRegex = 
@@ -63,6 +64,7 @@ public class Utils
         new Regex(@"(.*) (?:not in) \[(.*)\]",
             (RegexOptions.IgnoreCase));
     
+    
     public static void PrintEntries(IEnumerable<Entry> entries, string tableName = "")
     {
         Console.WriteLine(tableName);
@@ -94,31 +96,60 @@ public class Utils
         }
     }
 
+    //ORGANIZAR E ARRUMAR
     public static IOperation BuildTree(Access mainAccess, string operationQuery, Database database)
     {
         IOperation lastOperation = mainAccess;
+
+        Where where = null;
         
+        var whereMatch = WhereRegex.Match(operationQuery);
+        if (whereMatch.Success)
+        {
+            where = new Where(
+                BuildConditionTree(whereMatch.Groups[1].Value.Trim()),
+                null
+            );
+        }
+
+        if (where != null && 
+            (!where.Condition.InvolvedTables.Any() || where.Condition.InvolvedTables.Contains(mainAccess.TableName)))
+        {
+            where.CollectionOperation = lastOperation;
+            lastOperation = where;
+            where = null;
+        }
+
         var joinMatch = JoinRegex.Match(operationQuery);
         if (joinMatch.Success) //ver pra substituir por while .Sucess e botar um .NextMatch() no final
         {
             var groups = joinMatch.Groups.Values.Select(g => g.Value).ToArray();
+            var tableName = joinMatch.Groups[1].Value.Trim();
+            IOperation access = new Access(tableName, database);
+            
+            if (where != null 
+                && where.Condition.InvolvedTables.Length == 1 
+                && where.Condition.InvolvedTables[0].Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                where.CollectionOperation = access;
+                access = where;
+                where = null;
+            }
+            
             lastOperation = new Join
             (
                 BuildConditionTree(joinMatch.Groups[2].Value.Trim()),
-                mainAccess,
-                new Access(joinMatch.Groups[1].Value.Trim(), database)
+                lastOperation,
+                access
                 );
         }
 
-        var whereMatch = WhereRegex.Match(operationQuery);
-        if (whereMatch.Success)
+        if (where != null)
         {
-            lastOperation = new Where(
-                BuildConditionTree(whereMatch.Groups[1].Value.Trim()),
-                lastOperation
-                );
+            where.CollectionOperation = lastOperation;
+            lastOperation = where;
         }
-
+        
         var orderByMatch = OrderByRegex.Match(operationQuery);
         if (orderByMatch.Success)
         {
@@ -128,128 +159,14 @@ public class Utils
         return lastOperation;
     }
 
-    public static Func<QueryContext, Entry, bool> BuildConditionTree(string conditionString)
+    public static ICondition BuildConditionTree(string conditionString)
     {
-        {
-            // if (conditionString.Contains("AND"))
-            // {
-            //     var halves = conditionString.Split("AND", 2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) && c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains("and"))
-            // {
-            //     var halves = conditionString.Split("and", 2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) && c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains("OR"))
-            // {
-            //     var halves = conditionString.Split("OR",2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) || c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains("or"))
-            // {
-            //     var halves = conditionString.Split("or",2);
-            //     var c1 = BuildConditionTree(halves[0].Trim());
-            //     var c2 = BuildConditionTree(halves[1].Trim());
-            //     return (q,e) => c1(q,e) || c2(q,e);
-            // }
-            //
-            // if (conditionString.Contains(">="))
-            // {
-            //     var halves = conditionString.Split(">=",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q, e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 >= v2;
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("<="))
-            // {
-            //     var halves = conditionString.Split("<=", 2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 <= v2;
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("<>"))
-            // {
-            //     var halves = conditionString.Split("<>",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         //Ver como comparar fora int
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return !v1.Equals(v2);
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("="))
-            // {
-            //     var halves = conditionString.Split("=",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         //Ver como comparar fora int
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1.Equals(v2);
-            //     };
-            // }
-            //
-            // if (conditionString.Contains(">"))
-            // {
-            //     var halves = conditionString.Split(">",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 > v2;
-            //     };
-            // }
-            //
-            // if (conditionString.Contains("<"))
-            // {
-            //     var halves = conditionString.Split("<",2);
-            //     var k1 = halves[0].Trim();
-            //     var k2 = halves[1].Trim();
-            //     return (q,e) =>
-            //     {
-            //         var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-            //         var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-            //         return v1 < v2;
-            //     };
-            // }
-        }
-
         var andMatch = AndRegex.Match(conditionString);
         if (andMatch.Success)
         {
             var c1 = BuildConditionTree(andMatch.Groups[1].Value);
             var c2 = BuildConditionTree(andMatch.Groups[2].Value);
-            return (q, e) => c1(q, e) && c2(q, e);
+            return new AndCondition(c1, c2);
         }
         
         var orMatch = OrRegex.Match(conditionString);
@@ -257,170 +174,103 @@ public class Utils
         {
             var c1 = BuildConditionTree(orMatch.Groups[1].Value);
             var c2 = BuildConditionTree(orMatch.Groups[2].Value);
-            return (q, e) => c1(q, e) || c2(q, e);
+            return new OrCondition(c1, c2);
         }
         
         var ltoetMatch = LessThanOrEqualToRegex.Match(conditionString);
         if (ltoetMatch.Success)
         {
-            var k1 = ltoetMatch.Groups[1].Value.Trim();
-            var k2 = ltoetMatch.Groups[2].Value.Trim();
-            return (q, e) =>
-            {
-                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-                return v1 <= v2;
-            };
+            var k1 = GetVariableFromTerm(ltoetMatch.Groups[1].Value.Trim());
+            var k2 = GetVariableFromTerm(ltoetMatch.Groups[2].Value.Trim());
+            return new MathCondition(k1,k2,MathCondition.MathOperation.LessThanOrEqualTo);
         }
 
         var mtoetMatch = MoreThanOrEqualToRegex.Match(conditionString);
         if (mtoetMatch.Success)
         {
-            var k1 = mtoetMatch.Groups[1].Value.Trim();
-            var k2 = mtoetMatch.Groups[2].Value.Trim();
-            return (q, e) =>
-            {
-                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-                return v1 >= v2;
-            };
+            var k1 = GetVariableFromTerm(mtoetMatch.Groups[1].Value.Trim());
+            var k2 = GetVariableFromTerm(mtoetMatch.Groups[2].Value.Trim());
+            return new MathCondition(k1,k2,MathCondition.MathOperation.GreaterThanOrEqualTo);
         }
 
         var unequalMatch = UnequalToRegex.Match(conditionString);
         if (unequalMatch.Success)
         {
-            var k1 = unequalMatch.Groups[1].Value.Trim();
-            var k2 = unequalMatch.Groups[2].Value.Trim();
-            return (q, e) =>
-            {
-                var v1 = q.GetFieldByName(e, k1, () =>
-                {
-                    var isInt = int.TryParse(k1, out var val);
-                    if (isInt) return val;
-                    else return k1;
-                });
-                var v2 = q.GetFieldByName(e, k2, () =>
-                {
-                    var isInt = int.TryParse(k1, out var val);
-                    if (isInt) return val;
-                    else return k2;
-                });
-                return !v1.Equals(v2);
-            };
+            var k1 = GetVariableFromTerm(unequalMatch.Groups[1].Value.Trim());
+            var k2 = GetVariableFromTerm(unequalMatch.Groups[2].Value.Trim());
+            return new EqualityCondition(k1,k2,false);
         }
 
         var equalToMatch = EqualToRegex.Match(conditionString);
         if (equalToMatch.Success)
         {
-            var k1 = equalToMatch.Groups[1].Value.Trim();
-            var k2 = equalToMatch.Groups[2].Value.Trim();
-            return (q, e) =>
-            {
-                var v1 = q.GetFieldByName(e, k1, () =>
-                {
-                    var isInt = int.TryParse(k1, out var val);
-                    if (isInt) return val;
-                    else return k1;
-                });
-                var v2 = q.GetFieldByName(e, k2, () =>
-                {
-                    var isInt = int.TryParse(k1, out var val);
-                    if (isInt) return val;
-                    else return k2;
-                });
-                return v1.Equals(v2);
-            };
+            var k1 = GetVariableFromTerm(equalToMatch.Groups[1].Value.Trim());
+            var k2 = GetVariableFromTerm(equalToMatch.Groups[2].Value.Trim());
+            return new EqualityCondition(k1,k2,true);
         }
 
         var lessMatch = LessThanRegex.Match(conditionString);
         if (lessMatch.Success)
         {
-            var k1 = lessMatch.Groups[1].Value.Trim();
-            var k2 = lessMatch.Groups[2].Value.Trim();
-            return (q, e) =>
-            {
-                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-                return v1 < v2;
-            };
+            var k1 = GetVariableFromTerm(lessMatch.Groups[1].Value.Trim());
+            var k2 = GetVariableFromTerm(lessMatch.Groups[2].Value.Trim());
+            return new MathCondition(k1,k2,MathCondition.MathOperation.LessThan);
         }
 
         var moreMatch = MoreThanRegex.Match(conditionString);
         if (moreMatch.Success)
         {
-            var k1 = moreMatch.Groups[1].Value.Trim();
-            var k2 = moreMatch.Groups[2].Value.Trim();
-            return (q, e) =>
-            {
-                var v1 = (int) q.GetFieldByName(e, k1, () => int.Parse(k1));
-                var v2 = (int) q.GetFieldByName(e, k2, () => int.Parse(k2));
-                return v1 > v2;
-            };
+            var k1 = GetVariableFromTerm(moreMatch.Groups[1].Value.Trim());
+            var k2 = GetVariableFromTerm(moreMatch.Groups[2].Value.Trim());
+            return new MathCondition(k1,k2,MathCondition.MathOperation.GreaterThan);
         }
 
         var notInMatch = NotInRegex.Match(conditionString);
         if (notInMatch.Success)
         {
-            var k1 = notInMatch.Groups[1].Value.Trim();
-            var k2 = notInMatch.Groups[2].Value.Split(",").Select(s => s.Trim()).ToArray();
-            return (q, e) =>
-            {
-                var v1 = q.GetFieldByName(e, k1, () =>
-                {
-                    var isInt = int.TryParse(k1, out var val);
-                    if (isInt) return val;
-                    else return k1;
-                });
-
-                foreach (var possible in k2)
-                {
-                    var v2 = q.GetFieldByName(e, possible, () =>
-                    {
-                        var isInt = int.TryParse(possible, out var val);
-                        if (isInt) return val;
-                        else return possible;
-                    });
-
-                    if (v1.Equals(v2))
-                        return false;
-                }
-
-                return true;
-            };
+            var k1 = GetVariableFromTerm(notInMatch.Groups[1].Value.Trim());
+            var k2 = notInMatch.Groups[2].Value
+                .Split(",")
+                .Select(s => GetVariableFromTerm(s.Trim()))
+                .ToArray();
+            return new InCondition(k1, k2, false);
         }
         
         var inMatch = InRegex.Match(conditionString);
         if (inMatch.Success)
         {
-            var k1 = inMatch.Groups[1].Value.Trim();
-            var k2 = inMatch.Groups[2].Value.Split(",").Select(s => s.Trim()).ToArray();
-            return (q, e) =>
-            {
-                var v1 = q.GetFieldByName(e, k1, () =>
-                {
-                    var isInt = int.TryParse(k1, out var val);
-                    if (isInt) return val;
-                    else return k1;
-                });
-
-                foreach (var possible in k2)
-                {
-                    var v2 = q.GetFieldByName(e, possible, () =>
-                    {
-                        var isInt = int.TryParse(possible, out var val);
-                        if (isInt) return val;
-                        else return possible;
-                    });
-
-                    if (v1.Equals(v2))
-                        return true;
-                }
-
-                return false;
-            };
+            var k1 = GetVariableFromTerm(notInMatch.Groups[1].Value.Trim());
+            var k2 = notInMatch.Groups[2].Value
+                .Split(",")
+                .Select(s => GetVariableFromTerm(s.Trim()))
+                .ToArray();
+            return new InCondition(k1, k2, true);
         }
 
         // return e => false;
         throw new Exception($"{conditionString} is invalid condition");
+    }
+
+    public static Variable GetVariableFromTerm(string term)
+    {
+        if ((term[0] == '"' && term[^0] == '"')
+            || (term[0] == '\'' && term[^0] == '\''))
+        {
+            var variable = new string(term.Skip(1).SkipLast(1).ToArray());
+            return new Variable(typeof(string), variable);
+        }
+
+        if (int.TryParse(term, out var number))
+        {
+            return new Variable(typeof(int), number);
+        }
+
+        if (DateTime.TryParse(term, out var date))
+        {
+            return new Variable(typeof(DateTime), date);
+        }
+        
+        var identifier = new FieldIdentifier(term);
+        return new Variable(typeof(FieldIdentifier), identifier);
     }
 }

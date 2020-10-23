@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Querying.Conditions;
 using Querying.Data;
 using Querying.Query;
 
 public class Join : IOperation
 {
-    public Func<QueryContext, Entry, bool> Joiner { get; }
+    public ICondition Condition { get; }
     public IOperation CollectionOperation { get; }
     public IOperation ForeignCollectionOperation { get; }
     
     public Join(
-        Func<QueryContext, Entry, bool> joiner, 
+        ICondition condition, 
         IOperation collectionOperation, 
         IOperation foreignCollectionOperation)
     {
-        Joiner = joiner;
+        Condition = condition;
         CollectionOperation = collectionOperation;
         ForeignCollectionOperation = foreignCollectionOperation;
     }
@@ -45,7 +46,7 @@ public class Join : IOperation
             {
                 var joinedEntry = MergeEntries(entry, fEntry);
                 
-                if (Joiner(mergedContext, joinedEntry))
+                if (Condition.IsTrue(mergedContext, joinedEntry))
                     joinedEntries.Add(joinedEntry);
             }
         }
