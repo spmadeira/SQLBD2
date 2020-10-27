@@ -53,5 +53,9 @@ namespace Querying.Query
                 };
             }
         }
+
+        public IOperation[] ChildOperations => new[] {CollectionOperation};
+
+        public string OperationDescription => $"Select {(Parameters == null || Parameters.Length == 0 ? "*" : string.Join(", ", Parameters))}";
     }
 }

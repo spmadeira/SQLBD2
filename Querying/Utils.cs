@@ -76,7 +76,6 @@ public class Utils
 
     public static IOperation BuildOperation(string queryString, Database database)
     {
-        //var ctx = new QueryContext();
         var match = MainQueryRegex.Match(queryString);
         if (match.Success)
         {
@@ -120,6 +119,8 @@ public class Utils
             where = null;
         }
 
+        //SELECT * FROM USER JOIN CONTAS ON CONTAS.USERID = USER.ID WHERE USER.POINTS >= 30
+        
         var joinMatch = JoinRegex.Match(operationQuery);
         if (joinMatch.Success) //ver pra substituir por while .Sucess e botar um .NextMatch() no final
         {
@@ -253,8 +254,8 @@ public class Utils
 
     public static Variable GetVariableFromTerm(string term)
     {
-        if ((term[0] == '"' && term[^0] == '"')
-            || (term[0] == '\'' && term[^0] == '\''))
+        if ((term[0] == '"' && term[^1] == '"')
+            || (term[0] == '\'' && term[^1] == '\''))
         {
             var variable = new string(term.Skip(1).SkipLast(1).ToArray());
             return new Variable(typeof(string), variable);

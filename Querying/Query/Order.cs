@@ -32,5 +32,9 @@ namespace Querying.Query
                 IncludedTables = context.IncludedTables.ToArray()
             };
         }
+
+        public IOperation[] ChildOperations => new []{ CollectionOperation };
+
+        public string OperationDescription => $"Order By {Key}";
     }
 }

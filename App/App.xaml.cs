@@ -13,5 +13,14 @@ namespace BD2App
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            DotNetEnv.Env.Load("../.env");
+            Syncfusion
+                .Licensing
+                .SyncfusionLicenseProvider
+                .RegisterLicense(Environment.GetEnvironmentVariable("SYNCFUSION_KEY"));
+        }
     }
 }

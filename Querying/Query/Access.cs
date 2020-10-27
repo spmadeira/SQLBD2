@@ -33,6 +33,8 @@ namespace Querying.Query
             };
         }
 
-        public IOperation CollectionOperation => null;
+        public IOperation[] ChildOperations => new IOperation[0];
+
+        public string OperationDescription => $"Access {TableName}";
     }
 }

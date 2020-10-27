@@ -13,5 +13,12 @@ namespace Querying.Data
             Value = value;
             if (value.GetType() != type) throw new System.Exception($"{value} is not {type}");
         }
+
+        public override string ToString()
+        {
+            if (Value is DateTime dateTime)
+                return $"{dateTime:yyyy/MM/dd}";
+            return Value.ToString();
+        }
     }
 }

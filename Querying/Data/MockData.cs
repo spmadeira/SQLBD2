@@ -42,6 +42,8 @@ namespace Querying.Data
                     var trimmed = e.Trim();
                     var isNumber = int.TryParse(trimmed, out var numb);
                     if (isNumber) return numb;
+                    var isDate = DateTime.TryParse(trimmed, out var date);
+                    if (isDate) return date;
                     else return trimmed;
                 }).ToArray());
             }

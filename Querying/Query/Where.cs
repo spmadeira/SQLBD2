@@ -33,4 +33,8 @@ public class Where : IOperation
             IncludedTables = queryContext.IncludedTables.ToArray()
         };
     }
+
+    public IOperation[] ChildOperations => new []{CollectionOperation};
+
+    public string OperationDescription => $"Where {Condition.ConditionDescription}";
 }

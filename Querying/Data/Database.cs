@@ -36,10 +36,6 @@ namespace Querying.Data
                 fields[table.Keys[i]] = values[i];
             }
             
-            // table.Entries = table.Entries.Append(new Entry
-            // {
-            //     Fields = fields
-            // }).ToArray();
             table.Entries.Add(new Entry{Fields = fields});
         }
     }

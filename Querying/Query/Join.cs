@@ -10,10 +10,10 @@ public class Join : IOperation
     public ICondition Condition { get; }
     public IOperation CollectionOperation { get; }
     public IOperation ForeignCollectionOperation { get; }
-    
+
     public Join(
-        ICondition condition, 
-        IOperation collectionOperation, 
+        ICondition condition,
+        IOperation collectionOperation,
         IOperation foreignCollectionOperation)
     {
         Condition = condition;
@@ -37,7 +37,7 @@ public class Join : IOperation
                 Entries = null
             }
         };
-        
+
         var joinedEntries = new List<Entry>();
 
         foreach (var entry in context.EntryCollection.Entries)
@@ -45,7 +45,7 @@ public class Join : IOperation
             foreach (var fEntry in fContext.EntryCollection.Entries)
             {
                 var joinedEntry = MergeEntries(entry, fEntry);
-                
+
                 if (Condition.IsTrue(mergedContext, joinedEntry))
                     joinedEntries.Add(joinedEntry);
             }
@@ -56,30 +56,6 @@ public class Join : IOperation
         return mergedContext;
     }
 
-    [Obsolete]
-    private Dictionary<string, object> JoinFields(
-        Dictionary<string, object> fields, 
-        string[] keys, 
-        string name, 
-        Dictionary<string, object> foreignFields, 
-        string[] foreignKeys,
-        string foreignName)
-    {
-        var newFields = new Dictionary<string,object>();
-    
-        foreach (var key in keys)
-        {
-            newFields[$"{name}.{key}"] = fields[key];
-        }
-    
-        foreach (var key in foreignKeys)
-        {
-            newFields[$"{foreignName}.{key}"] = foreignFields[key];
-        }
-    
-        return newFields;
-    }
-
     private Entry MergeEntries(Entry entry, Entry fEntry)
     {
         var kvps = entry.Fields.Concat(fEntry.Fields).ToArray();
@@ -88,4 +64,8 @@ public class Join : IOperation
             Fields = new Dictionary<FieldIdentifier, object>(kvps)
         };
     }
+
+    public IOperation[] ChildOperations => new[] { CollectionOperation, ForeignCollectionOperation };
+
+    public string OperationDescription => $"Join on {Condition.ConditionDescription}";
 }

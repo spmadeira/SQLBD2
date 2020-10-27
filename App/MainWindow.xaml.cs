@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using App;
+using Microsoft.Msagl.Drawing;
+using Microsoft.Msagl.Layout.LargeGraphLayout;
+using Microsoft.Msagl.Layout.Layered;
+using Microsoft.Msagl.Layout.MDS;
+using Microsoft.Msagl.Prototype.Ranking;
+using Microsoft.Msagl.WpfGraphControl;
 using Querying.Data;
+using Querying.Query;
+using Database = Querying.Data.Database;
 
 namespace BD2App
 {
@@ -23,13 +33,29 @@ namespace BD2App
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static Database Database;
+        private Database Database;
+        private IOperation CurrentOperation;
+        private BackgroundWorker DatabaseLoader = new BackgroundWorker();
         
         public MainWindow()
         {
             InitializeComponent();
-            Database = new Database();
-            MockData.Seed(Database);
+
+            QueryInput.IsEnabled = false;
+            AnalysisButton.IsEnabled = false;
+            
+            DatabaseLoader.DoWork += (sender, args) =>
+            {
+                Database = new Database();
+                MockData.Seed(Database);    
+            };
+            DatabaseLoader.RunWorkerCompleted += (sender, args) =>
+            {
+                LogBox.Text += "Database loaded\n";
+                QueryInput.IsEnabled = true;
+            };
+            
+            DatabaseLoader.RunWorkerAsync();
             KeyDown += (sender, args) =>
             {
                 if (args.Key == Key.Enter)
@@ -51,8 +77,19 @@ namespace BD2App
 
         private void QueryClick(object sender, RoutedEventArgs e)
         {
+            if (Database == null) return;
+            
             var text = QueryInput.Text;
             QueryInput.Text = "";
+            
+            if (text.Equals("clear", StringComparison.InvariantCultureIgnoreCase))
+            {
+                LogBox.Text = "";
+                DataGrid.Columns.Clear();
+                DataGrid.ItemsSource = null;
+                return;
+            }
+
             LogBox.Text += $"\n{text}";
             try
             {
@@ -85,12 +122,25 @@ namespace BD2App
                 }
                 
                 DataGrid.ItemsSource = parsedResults;
+                // BuildOperationDiagram(op);
+                CurrentOperation = op;
+                AnalysisButton.IsEnabled = true;
             }
-            catch (IndexOutOfRangeException ex)
+            catch (Exception ex)
             {
                 LogBox.Text += $"\nQuery error -- {ex.Message}";
-                
             }
+        }
+
+        private void QueryAnalysis(object sender, RoutedEventArgs e)
+        {
+            BuildOperationDiagram(CurrentOperation);
+        }
+
+        private void BuildOperationDiagram(IOperation operation)
+        {
+            var diagramWindow = new OperationFlowWindow(operation);
+            diagramWindow.Show();
         }
     }
 }

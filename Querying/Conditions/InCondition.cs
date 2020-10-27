@@ -38,5 +38,8 @@ namespace Querying.Conditions
         private readonly string[] _tables = new string[0];
 
         public string[] InvolvedTables => _tables;
+
+        public string ConditionDescription =>
+            $"{Variable} in [{string.Join(",", Variables.Select(v => v.ToString()))}]";
     }
 }

@@ -50,7 +50,7 @@ namespace Querying.Data
 
         public override string ToString()
         {
-            return $"{FieldSourceName}{(FieldSourceName != null ? "." : "")}{FieldName}";
+            return $"{FieldSourceName}{(string.IsNullOrEmpty(FieldSourceName) ? "" : ".")}{FieldName}";
         }
     }
 }

@@ -20,5 +20,7 @@ namespace Querying.Conditions
         }
 
         public string[] InvolvedTables => First.InvolvedTables.Concat(Second.InvolvedTables).ToArray();
+
+        public string ConditionDescription => $"{First.ConditionDescription} || {Second.ConditionDescription}";
     }
 }

@@ -6,5 +6,6 @@ namespace Querying.Conditions
     {
         bool IsTrue(QueryContext context, Entry entry);
         string[] InvolvedTables { get; }
+        public string ConditionDescription { get; }
     }
 }

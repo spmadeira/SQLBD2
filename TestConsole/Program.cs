@@ -50,16 +50,16 @@ public class Program
 
             Console.WriteLine($"Query Duration: {sw.ElapsedMilliseconds}ms");
             Console.WriteLine();
-            Console.Write($"Operation Order: ");
-
-            void printOps(IOperation op)
-            {
-                if (op.CollectionOperation != null)
-                    printOps(op.CollectionOperation);
-                Console.Write($"{op.GetType().Name} ");
-            }
+            // Console.Write($"Operation Order: ");
+            //
+            // void printOps(IOperation op)
+            // {
+            //     if (op.CollectionOperation != null)
+            //         printOps(op.CollectionOperation);
+            //     Console.Write($"{op.GetType().Name} ");
+            // }
             
-            printOps(operation);
+            //printOps(operation);
             Console.WriteLine();
         }
         catch (EntryPointNotFoundException e)
