@@ -175,23 +175,23 @@ public class Utils
             var where = new Where(
                 BuildConditionTree(match.Groups[1].Value.Trim()),
                 null);
-                
-            if (@where.Condition.InvolvedTables.Length == 0)
-                throw new Exception($"Constant condition: {@where.Condition.ConditionDescription}");
 
-            if (@where.Condition.InvolvedTables.Length == 1 &
-                @where.Condition.InvolvedTables[1]
-                    .Equals(mainAccess.TableName, StringComparison.InvariantCultureIgnoreCase))
+            if (where.Condition.InvolvedTables.Length == 0 || 
+                (where.Condition.InvolvedTables.Length == 1 &&
+                where.Condition.InvolvedTables[0]
+                    .Equals(mainAccess.TableName, StringComparison.InvariantCultureIgnoreCase)))
             {
-                @where.CollectionOperation = lastOperation;
-                lastOperation = @where;
+                where.CollectionOperation = lastOperation;
+                lastOperation = where;
             }
             else
             {
-                wheres.Add(@where);
+                wheres.Add(where);
             }
         }
 
+        wheres = wheres.OrderByDescending(w => w.Condition.Complexity).ToList();
+        
         var joinMatches = JoinRegex.Matches(operationQuery);
         
         foreach (Match match in joinMatches)
@@ -201,7 +201,7 @@ public class Utils
 
             var joinWheres =
                 wheres.Where(w => w.Condition.InvolvedTables.Length == 1
-                                  && w.Condition.InvolvedTables[1]
+                                  && w.Condition.InvolvedTables[0]
                                       .Equals(tableName,
                                           StringComparison.InvariantCultureIgnoreCase))
                         .ToArray();

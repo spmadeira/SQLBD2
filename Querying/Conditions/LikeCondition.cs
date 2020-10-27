@@ -51,5 +51,7 @@ namespace Querying.Conditions
 
         public string ConditionDescription
             => $"{Variable1} like {Variable2}";
+
+        public int Complexity => 5;
     }
 }

@@ -41,5 +41,7 @@ namespace Querying.Conditions
 
         public string ConditionDescription =>
             $"{Variable} in [{string.Join(",", Variables.Select(v => v.ToString()))}]";
+
+        public int Complexity => (int) (50 / Variables.Length);
     }
 }

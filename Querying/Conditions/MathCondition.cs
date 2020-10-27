@@ -83,5 +83,20 @@ namespace Querying.Conditions
 
         public string ConditionDescription =>
             $"{Variable1} {(Operation switch {MathOperation.LessThanOrEqualTo => "<=", MathOperation.LessThan => "<", MathOperation.GreaterThan => ">", MathOperation.GreaterThanOrEqualTo => ">=", _ => throw new ArgumentException()})} {Variable2}";
+
+        public int Complexity
+        {
+            get
+            {
+                return Operation switch
+                {
+                    MathOperation.LessThanOrEqualTo => 15,
+                    MathOperation.LessThan => 20,
+                    MathOperation.GreaterThan => 20,
+                    MathOperation.GreaterThanOrEqualTo => 15,
+                    _ => throw new ArgumentException()
+                };
+            }
+        }
     }
 }

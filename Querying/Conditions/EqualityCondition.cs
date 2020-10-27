@@ -55,5 +55,17 @@ namespace Querying.Conditions
         public string[] InvolvedTables => _tables;
 
         public string ConditionDescription => $"{Variable1} {(ExpectedResult ? "==" : "!=")} {Variable2}";
+        
+        public int Complexity
+        {
+            get
+            {
+                if (Variable1.Type != typeof(FieldIdentifier)
+                    && Variable2.Type != typeof(FieldIdentifier))
+                    return 1000;
+                else
+                    return ExpectedResult ? 50 : 10;
+            }
+        }
     }
 }

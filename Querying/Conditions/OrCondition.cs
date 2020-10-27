@@ -22,5 +22,7 @@ namespace Querying.Conditions
         public string[] InvolvedTables => First.InvolvedTables.Concat(Second.InvolvedTables).ToArray();
 
         public string ConditionDescription => $"{First.ConditionDescription} || {Second.ConditionDescription}";
+
+        public int Complexity => (int) ((First.Complexity + Second.Complexity) * 1.5f);
     }
 }
