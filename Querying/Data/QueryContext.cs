@@ -69,5 +69,18 @@ namespace Querying.Data
                     return identifiers.First();
             }
         }
+
+        public bool CanGetIdentifierFromName(string name)
+        {
+            try
+            {
+                GetFieldIdentifierFromName(name);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

@@ -79,6 +79,9 @@
                 Background="LightGray"
                 FontFamily="{StaticResource MaterialDesignFont}"
                 x:Name="LogBox"
+                TextWrapping="Wrap"
+                FontSize="14"
+                VerticalScrollBarVisibility="Auto"
                 IsReadOnly="True" />
             <Grid
                 Grid.Row="1">

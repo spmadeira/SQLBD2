@@ -6,7 +6,7 @@ namespace Querying.Query
     public class Order : IOperation
     {
         public string Key { get; }
-        public IOperation CollectionOperation { get; }
+        public IOperation CollectionOperation { get; set; }
 
         public Order(string key, IOperation collectionOperation)
         {

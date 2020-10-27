@@ -79,7 +79,7 @@ namespace BD2App
         {
             if (Database == null) return;
             
-            var text = QueryInput.Text;
+            var text = QueryInput.Text.Trim();
             QueryInput.Text = "";
             
             if (text.Equals("clear", StringComparison.InvariantCultureIgnoreCase))
@@ -88,6 +88,11 @@ namespace BD2App
                 DataGrid.Columns.Clear();
                 DataGrid.ItemsSource = null;
                 return;
+            }
+
+            if (text.Equals("exit", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Environment.Exit(0);
             }
 
             LogBox.Text += $"\n{text}";

@@ -64,6 +64,9 @@ public class Utils
         new Regex(@"(.*) (?:not in) \[(.*)\]",
             (RegexOptions.IgnoreCase));
     
+    public static Regex LikeRegex =
+        new Regex(@"(.*) (?:like) (.*)",
+            (RegexOptions.IgnoreCase));
     
     public static void PrintEntries(IEnumerable<Entry> entries, string tableName = "")
     {
@@ -98,63 +101,163 @@ public class Utils
     //ORGANIZAR E ARRUMAR
     public static IOperation BuildTree(Access mainAccess, string operationQuery, Database database)
     {
+        // IOperation lastOperation = mainAccess;
+        //
+        // Where where = null;
+        //
+        // var whereMatch = WhereRegex.Match(operationQuery);
+        // if (whereMatch.Success)
+        // {
+        //     where = new Where(
+        //         BuildConditionTree(whereMatch.Groups[1].Value.Trim()),
+        //         null
+        //     );
+        // }
+        //
+        // if (where != null &&
+        //     (!where.Condition.InvolvedTables.Any() || where.Condition.InvolvedTables.Contains(mainAccess.TableName)))
+        // {
+        //     where.CollectionOperation = lastOperation;
+        //     lastOperation = where;
+        //     where = null;
+        // }
+        //
+        // //SELECT * FROM USER JOIN CONTAS ON CONTAS.USERID = USER.ID WHERE USER.POINTS >= 30
+        //
+        // var joinMatch = JoinRegex.Match(operationQuery);
+        // if (joinMatch.Success) //ver pra substituir por while .Sucess e botar um .NextMatch() no final
+        // {
+        //     var groups = joinMatch.Groups.Values.Select(g => g.Value).ToArray();
+        //     var tableName = joinMatch.Groups[1].Value.Trim();
+        //     IOperation access = new Access(tableName, database);
+        //
+        //     if (where != null
+        //         && where.Condition.InvolvedTables.Length == 1
+        //         && where.Condition.InvolvedTables[0].Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
+        //     {
+        //         where.CollectionOperation = access;
+        //         access = where;
+        //         where = null;
+        //     }
+        //
+        //     lastOperation = new Join
+        //     (
+        //         BuildConditionTree(joinMatch.Groups[2].Value.Trim()),
+        //         lastOperation,
+        //         access
+        //     );
+        // }
+        //
+        // if (where != null)
+        // {
+        //     where.CollectionOperation = lastOperation;
+        //     lastOperation = where;
+        // }
+        //
+        // var orderByMatch = OrderByRegex.Match(operationQuery);
+        // if (orderByMatch.Success)
+        // {
+        //     lastOperation = new Order(orderByMatch.Groups[1].Value.Trim(), lastOperation);
+        // }
+        //
+        // return lastOperation;
+
         IOperation lastOperation = mainAccess;
 
-        Where where = null;
-        
-        var whereMatch = WhereRegex.Match(operationQuery);
-        if (whereMatch.Success)
-        {
-            where = new Where(
-                BuildConditionTree(whereMatch.Groups[1].Value.Trim()),
-                null
-            );
-        }
+        var wheres = new List<Where>();
+        var whereMatches = WhereRegex.Matches(operationQuery);
+        var involvedTables = new List<string>{mainAccess.TableName};
 
-        if (where != null && 
-            (!where.Condition.InvolvedTables.Any() || where.Condition.InvolvedTables.Contains(mainAccess.TableName)))
+        foreach (Match match in whereMatches)
         {
-            where.CollectionOperation = lastOperation;
-            lastOperation = where;
-            where = null;
-        }
-
-        //SELECT * FROM USER JOIN CONTAS ON CONTAS.USERID = USER.ID WHERE USER.POINTS >= 30
-        
-        var joinMatch = JoinRegex.Match(operationQuery);
-        if (joinMatch.Success) //ver pra substituir por while .Sucess e botar um .NextMatch() no final
-        {
-            var groups = joinMatch.Groups.Values.Select(g => g.Value).ToArray();
-            var tableName = joinMatch.Groups[1].Value.Trim();
-            IOperation access = new Access(tableName, database);
+            if (!match.Success) continue;
             
-            if (where != null 
-                && where.Condition.InvolvedTables.Length == 1 
-                && where.Condition.InvolvedTables[0].Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
+            var where = new Where(
+                BuildConditionTree(match.Groups[1].Value.Trim()),
+                null);
+                
+            if (@where.Condition.InvolvedTables.Length == 0)
+                throw new Exception($"Constant condition: {@where.Condition.ConditionDescription}");
+
+            if (@where.Condition.InvolvedTables.Length == 1 &
+                @where.Condition.InvolvedTables[1]
+                    .Equals(mainAccess.TableName, StringComparison.InvariantCultureIgnoreCase))
             {
-                where.CollectionOperation = access;
-                access = where;
-                where = null;
+                @where.CollectionOperation = lastOperation;
+                lastOperation = @where;
+            }
+            else
+            {
+                wheres.Add(@where);
+            }
+        }
+
+        var joinMatches = JoinRegex.Matches(operationQuery);
+        
+        foreach (Match match in joinMatches)
+        {
+            var tableName = match.Groups[1].Value.Trim();
+            IOperation access = new Access(tableName, database);
+
+            var joinWheres =
+                wheres.Where(w => w.Condition.InvolvedTables.Length == 1
+                                  && w.Condition.InvolvedTables[1]
+                                      .Equals(tableName,
+                                          StringComparison.InvariantCultureIgnoreCase))
+                        .ToArray();
+
+            if (joinWheres.Length > 0)
+            {
+                wheres = wheres.Except(joinWheres).ToList();
+                foreach (var joinWhere in joinWheres)
+                {
+                    joinWhere.CollectionOperation = access;
+                    access = joinWhere;
+                }
             }
             
             lastOperation = new Join
             (
-                BuildConditionTree(joinMatch.Groups[2].Value.Trim()),
+                BuildConditionTree(match.Groups[2].Value.Trim()),
                 lastOperation,
                 access
-                );
+            );
+
+            involvedTables.Add(tableName);
+
+            var postJoinWheres =
+                wheres.Where(w =>
+                {
+                    var tables = w.Condition.InvolvedTables.Select(t => t.ToLower());
+                    var involved = involvedTables.Select(t => t.ToLower());
+                    return !tables.Except(involved).Any();
+                })
+                    .ToArray();
+
+            if (postJoinWheres.Length > 0)
+            {
+                wheres = wheres.Except(postJoinWheres).ToList();
+                foreach (var where in postJoinWheres)
+                {
+                    where.CollectionOperation = lastOperation;
+                    lastOperation = where;
+                }
+            }
         }
 
-        if (where != null)
+        if (wheres.Any())
         {
-            where.CollectionOperation = lastOperation;
-            lastOperation = where;
+            throw new Exception($"Invalid where: {wheres.First().Condition.ConditionDescription}");
         }
-        
-        var orderByMatch = OrderByRegex.Match(operationQuery);
-        if (orderByMatch.Success)
+
+        var orderByMatches = OrderByRegex.Matches(operationQuery);
+        foreach (Match orderByMatch in orderByMatches)
         {
-            lastOperation = new Order(orderByMatch.Groups[1].Value.Trim(), lastOperation);
+            if (orderByMatch.Success)
+            {
+                lastOperation = new Order(
+                    orderByMatch.Groups[1].Value.Trim(), lastOperation);
+            }
         }
 
         return lastOperation;
@@ -248,6 +351,14 @@ public class Utils
             return new InCondition(k1, k2, true);
         }
 
+        var likeMatch = LikeRegex.Match(conditionString);
+        if (likeMatch.Success)
+        {
+            var v1 = GetVariableFromTerm(likeMatch.Groups[1].Value.Trim());
+            var v2 = GetVariableFromTerm(likeMatch.Groups[2].Value.Trim());
+            return new LikeCondition(v1,v2);
+        }
+        
         // return e => false;
         throw new Exception($"{conditionString} is invalid condition");
     }
