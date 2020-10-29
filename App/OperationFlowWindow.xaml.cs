@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Querying.Data;
 using Querying.Query;
 using Syncfusion.UI.Xaml.Diagram;
+using Syncfusion.UI.Xaml.Diagram.Controls;
 
 namespace App
 {
@@ -50,8 +52,18 @@ namespace App
                 UnitWidth = 180,
                 Shape = new RectangleGeometry {Rect = new Rect(0, 0, 10, 10)},
                 ShapeStyle = Resources["ShapeStyle"] as Style,
-                Annotations = new AnnotationCollection()
-                    {new AnnotationEditorViewModel {Content = operation.OperationDescription}}
+                Annotations = new ObservableCollection<IAnnotation>
+                {
+                    new TextAnnotationViewModel()
+                    {
+                        Text = operation.OperationDescription,
+                        FontStyle = FontStyles.Normal,
+                        FontSize = 14,
+                        FontFamily = Resources["MaterialDesignFont"] as FontFamily,
+                        FontWeight = FontWeights.Normal,
+                        Foreground = new SolidColorBrush(Colors.White),
+                    }
+                }
             };
             NodeInfo[level].Add(node);
             NodeCollection.Add(node);
@@ -89,32 +101,6 @@ namespace App
                     col[j].OffsetY = (levelWidth * (i + 1)) - levelWidth / 2f;
                 }
             }
-        }
-
-        public NodeViewModel AddNode(double offsetX, double offsetY, double width, double height, string text, string shape)
-        {
-            NodeViewModel node = new NodeViewModel();
-            node.ID = text;
-            node.OffsetX = offsetX;
-            node.OffsetY = offsetY;
-            node.UnitHeight = height;
-            node.UnitWidth = width;
-            //Specify shape to the Node from built-in Shape Dictionary
-            node.Shape = new RectangleGeometry()
-            {
-                Rect = new Rect(0, 0, 10, 10)
-                
-            };
-            //Apply style to Shape
-            node.ShapeStyle = this.Resources["ShapeStyle"] as Style;
-            node.Annotations = new AnnotationCollection()
-            {
-                new AnnotationEditorViewModel()
-                {
-                    Content=text,
-                },
-            };
-            return node;
         }
     }
 }

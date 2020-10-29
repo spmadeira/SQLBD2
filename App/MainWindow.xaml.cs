@@ -131,7 +131,7 @@ namespace BD2App
                 CurrentOperation = op;
                 AnalysisButton.IsEnabled = true;
             }
-            catch (EntryPointNotFoundException ex)
+            catch (Exception ex)
             {
                 LogBox.Text += $"\nQuery error -- {ex.Message}";
             }
